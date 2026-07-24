@@ -1,45 +1,58 @@
-import { PrismaClient, Role, Condition } from '@prisma/client';
-import { hash } from 'bcrypt';
-import * as config from '../config/settings.development.json';
+import { PrismaClient, Condition } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import fs from 'fs';
+import path from 'path';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
+});
+const prisma = new PrismaClient({ adapter });
+const configPath = path.join(process.cwd(), 'config', 'settings.development.json');
+const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
 async function main() {
-  console.log('Seeding the database');
-  const password = await hash('changeme', 10);
-  config.defaultAccounts.forEach(async (account) => {
-    const role = account.role as Role || Role.USER;
-    console.log(`  Creating user: ${account.email} with role: ${role}`);
-    await prisma.user.upsert({
-      where: { email: account.email },
-      update: {
-        password,
-      },
-      create: {
-        email: account.email,
-        password,
-        role,
-      },
-    });
-    // console.log(`  Created user: ${user.email} with role: ${user.role}`);
-  });
-  for (const data of config.defaultData) {
-    const condition = data.condition as Condition || Condition.good;
-    console.log(`  Adding stuff: ${JSON.stringify(data)}`);
-    await prisma.stuff.upsert({
-      where: { id: config.defaultData.indexOf(data) + 1 },
-      update: {},
-      create: {
-        name: data.name,
-        quantity: data.quantity,
-        owner: data.owner,
-        condition,
-      },
-    });
+  console.log('Seeding database...');
+  if (config.defaultData) {
+    for (const item of config.defaultData) {
+      console.log(`  Adding stuff: ${item.name}`);
+      const existingItem = await prisma.stuff.findFirst({
+        where: { name: item.name, owner: item.owner },
+      });
+      if (!existingItem) {
+        await prisma.stuff.create({
+          data: {
+            name: item.name,
+            quantity: item.quantity,
+            owner: item.owner,
+            condition: item.condition as Condition,
+          },
+        });
+      }
+    }
+  }
+  if (config.defaultContacts) {
+    for (const contact of config.defaultContacts) {
+      console.log(`  Adding contact: ${contact.firstName} ${contact.lastName}`);
+      const existingContact = await prisma.contact.findFirst({
+        where: {
+          firstName: contact.firstName,
+          lastName: contact.lastName,
+          owner: contact.owner,
+        },
+      });
+      if (!existingContact) {
+        await prisma.contact.create({
+          data: contact,
+        });
+      }
+    }
   }
 }
+
 main()
-  .then(() => prisma.$disconnect())
+  .then(async () => {
+    await prisma.$disconnect();
+  })
   .catch(async (e) => {
     console.error(e);
     await prisma.$disconnect();

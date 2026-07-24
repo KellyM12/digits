@@ -11,18 +11,24 @@ import pluginReact from "eslint-plugin-react";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
-  // 1. Tell ESLint to ignore build artifacts and configuration files
+  // 1. Tell ESLint to completely ignore all configuration files globally 👈 THE FIX
   {
-    ignores: ["eslint.config.js", "**/.eslintrc*", ".next/**", "node_modules/**"],
+    ignores: [
+      "eslint.config.js",  // 👈 Updated to match your exact file extension!
+      "next.config.mjs", 
+      "**/.eslintrc*", 
+      ".next/**", 
+      "node_modules/**"
+    ],
   },
 
-  // 2. Setup global language options using Project Service 👈 THE FIX
+  // 2. Setup global language options using Project Service
   {
     languageOptions: {
       globals: globals.browser,
       parserOptions: {
-        projectService: true, // Automatically manages tsconfig mappings without breaking paths!
-        tsconfigRootDir: __dirname, // Anchors the root fallback
+        projectService: true,
+        tsconfigRootDir: __dirname,
       },
     },
   },

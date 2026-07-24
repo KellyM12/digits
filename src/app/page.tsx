@@ -28,18 +28,6 @@ const contacts: Contact[] = [{
 
 export default function ListContactsPage() {
   return (
-    <main>
-      <Container className="py-3">
-        <h2 className="text-center py-3 text-white">List Contacts</h2>
-        <Row xs={1} md={2} lg={3} className="g-4">
-          {contacts.map((contact) => (
-            <Col key={`Contact-${contact.firstName}`}>
-              <ContactCard contact ={contact} />
-            </Col>
-          ))}
-          
-        </Row>
-      </Container>
-    </main>
+    
   );
 }

@@ -8,40 +8,41 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
+import { defineConfig } from "eslint/config";
 
-export default tseslint.config(
+export default defineConfig([
+  {
+    ignores: ["eslint.config.mjs"],
+  },
   {
     ignores: [
-      "eslint.config.js",
-      "eslint.config.mjs",
-      "next.config.mjs",
-      ".next/**",
+      "next.config.mjs", 
+      "**/.eslintrc*", 
+      ".next/**", 
       "node_modules/**"
     ],
   },
   {
-    files: ["**/*.{ts,tsx,js,jsx,mjs,cjs}"],
-    extends: [
-      js.configs.recommended,
-      ...tseslint.configs.recommended,
-      pluginReact.configs.flat.recommended,
-      pluginReact.configs.flat['jsx-runtime'],
-    ],
     languageOptions: {
       globals: globals.browser,
       parserOptions: {
+        projectService: true,
         tsconfigRootDir: __dirname,
-        projectService: {
-          allowDefaultProject: [
-            "next.config.mjs", 
-            "eslint.config.js", 
-            "eslint.config.mjs"
-          ],
-        },
       },
     },
+  },
+  { 
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"], 
+    plugins: { js }, 
+    extends: ["js/recommended"] 
+  },
+ ...tseslint.configs.recommended, 
+  pluginReact.configs.flat.recommended,
+  pluginReact.configs.flat['jsx-runtime'],
+  {
     rules: {
       "react/react-in-jsx-scope": "off",
+      "react/jsx-uses-react": "off",
     },
-  }
-);
+  },
+]);

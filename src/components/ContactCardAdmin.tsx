@@ -1,7 +1,6 @@
 'use client';
 
 import { Contact } from '@prisma/client';
-import Link from 'next/link';
 import { Card, Image } from 'react-bootstrap';
 
 interface ContactCardProps {
@@ -9,7 +8,7 @@ interface ContactCardProps {
 }
 
 /* Renders a single Contact . See list/page.tsx. */
-const ContactCard = ( { contact } : ContactCardProps) => (
+const ContactCardAdmin = ( { contact } : ContactCardProps) => (
   <Card className="h-100">
     <Card.Header>
       <Image src={contact.image} width={75}/>
@@ -26,11 +25,9 @@ const ContactCard = ( { contact } : ContactCardProps) => (
       <Card.Text>
         {contact.description}
       </Card.Text>
+      <p className="blockquote-footer">{contact.owner}</p>
     </Card.Body>
-    <Card.Footer>
-      <Link href={`edit/${contact.id}`}>Edit</Link>
-    </Card.Footer>
   </Card>
 );
 
-export default ContactCard;
+export default ContactCardAdmin;

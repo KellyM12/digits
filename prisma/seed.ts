@@ -1,52 +1,72 @@
-import { PrismaClient, Condition } from '@prisma/client';
+import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
-import fs from 'fs';
-import path from 'path';
+import { PrismaClient, Role, Condition } from '@prisma/client';
+import { hash } from 'bcrypt';
+import * as config from '../config/settings.development.json' with { type: 'json' };
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-});
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
-const configPath = path.join(process.cwd(), 'config', 'settings.development.json');
-const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
 async function main() {
   console.log('Seeding database...');
-  if (config.defaultData) {
-    for (const item of config.defaultData) {
-      console.log(`  Adding stuff: ${item.name}`);
-      const existingItem = await prisma.stuff.findFirst({
-        where: { name: item.name, owner: item.owner },
-      });
-      if (!existingItem) {
-        await prisma.stuff.create({
-          data: {
-            name: item.name,
-            quantity: item.quantity,
-            owner: item.owner,
-            condition: item.condition as Condition,
-          },
-        });
-      }
+  const password = await hash('changeme', 10);
+  config.defaultAccounts.forEach(async (account) => {
+    let role: Role = 'USER';
+    if (account.role === 'ADMIN')
+    {
+      role = 'ADMIN';
     }
-  }
-  if (config.defaultContacts) {
-    for (const contact of config.defaultContacts) {
-      console.log(`  Adding contact: ${contact.firstName} ${contact.lastName}`);
-      const existingContact = await prisma.contact.findFirst({
-        where: {
-          firstName: contact.firstName,
-          lastName: contact.lastName,
-          owner: contact.owner,
-        },
-      });
-      if (!existingContact) {
-        await prisma.contact.create({
-          data: contact,
-        });
-      }
+    console.log(`Creating user: ${account.email} with role: ${role}`);
+    await prisma.user.upsert({
+      where: { email : account.email },
+      update : {},
+      create : {
+        email: account.email,
+        password,
+        role,
+      },
+    });
+  });
+  config.defaultData.forEach(async (data, index) => {
+    let condition: Condition = 'good';
+    if (data.condition === 'poor') {
+      condition = 'poor';
     }
-  }
+    else if (data.condition === 'excellent') {
+      condition = 'excellent';
+    }
+    else {
+      condition = 'fair';
+    }
+    console.log(`Adding stuf: ${data.name} (${data.owner}`);
+    await prisma.stuff.upsert({
+      where: { id : index },
+      update : {},
+      create : {
+        name : data.name,
+        quantity : data.quantity,
+        owner : data.owner,
+        condition
+      },
+    });
+  });
+  config.defaultContacts.forEach(async (contact, index) => {
+    console.log(`Adding contact: ${contact.firstName} ${contact.lastName}`);
+    await prisma.contact.upsert({
+      where: { id : index },
+      update : {},
+      create : {
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        address: contact.address,
+        image: contact.image,
+        description: contact.description,
+        owner: contact.owner,
+      },
+    });
+  });
 }
 
 main()

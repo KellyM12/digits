@@ -1,6 +1,7 @@
 'use client';
 
-import { Contact } from '@/lib/validationSchemas';
+import { Contact } from '@prisma/client';
+import Link from 'next/link';
 import { Card, Image } from 'react-bootstrap';
 
 interface ContactCardProps {
@@ -26,6 +27,9 @@ const ContactCard = ( { contact } : ContactCardProps) => (
         {contact.description}
       </Card.Text>
     </Card.Body>
+    <Card.Footer>
+      <Link href={`edit/${contact.id}`}>Edit</Link>
+    </Card.Footer>
   </Card>
 );
 

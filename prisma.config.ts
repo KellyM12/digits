@@ -7,7 +7,7 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
-    seed: "tsx prisma/seed.ts",
+    seed: 'npx tsx prisma/seed.ts',
   },
   datasource: {
     // Provide a fallback empty string so the config parser doesn't crash if un-set

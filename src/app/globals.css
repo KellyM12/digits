@@ -17,6 +17,10 @@ body {
 
 :root {
   --nat-navbar-bg: darkblue;
+  --nat-navbar-bg-color: darkblue;
+  --nat-navbar-text-highlight: khaki;
+  --nat-navbar-highlight-text: var(--bs-gray-500);
+  --nat-navbar-highlight-bg: lightblue;
   --nat-navbar-bg-rgb: 0, 0, 139; 
   --nat-navbar-text-color: white;
 }
@@ -28,6 +32,7 @@ footer, footer a {
 body {
   --bs-dark: var(--nat-navbar-bg);
   --bs-dark-rgb: var(--nat-navbar-bg-rgb);
+  --bs-light-rgb: 236, 236, 236;
   background: fixed center url("../../public/images/sky.jpg");
   background-size: cover;
 }

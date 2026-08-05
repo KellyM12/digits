@@ -1,47 +1,83 @@
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient, Role, Condition } from '@prisma/client';
 import { hash } from 'bcrypt';
-import * as config from '../config/settings.development.json';
+import * as config from '../config/settings.development.json' with { type: 'json' };
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('Seeding the database');
+  console.log('Seeding database...');
   const password = await hash('changeme', 10);
   config.defaultAccounts.forEach(async (account) => {
-    const role = account.role as Role || Role.USER;
-    console.log(`  Creating user: ${account.email} with role: ${role}`);
+    let role: Role = 'USER';
+    if (account.role === 'ADMIN')
+    {
+      role = 'ADMIN';
+    }
+    console.log(`Creating user: ${account.email} with role: ${role}`);
     await prisma.user.upsert({
-      where: { email: account.email },
-      update: {
-        password,
-      },
-      create: {
+      where: { email : account.email },
+      update : {},
+      create : {
         email: account.email,
         password,
         role,
       },
     });
-    // console.log(`  Created user: ${user.email} with role: ${user.role}`);
   });
-  for (const data of config.defaultData) {
-    const condition = data.condition as Condition || Condition.good;
-    console.log(`  Adding stuff: ${JSON.stringify(data)}`);
+  config.defaultData.forEach(async (data, index) => {
+    let condition: Condition = 'good';
+    if (data.condition === 'poor') {
+      condition = 'poor';
+    }
+    else if (data.condition === 'excellent') {
+      condition = 'excellent';
+    }
+    else {
+      condition = 'fair';
+    }
+    console.log(`Adding stuf: ${data.name} (${data.owner}`);
     await prisma.stuff.upsert({
-      where: { id: config.defaultData.indexOf(data) + 1 },
-      update: {},
-      create: {
-        name: data.name,
-        quantity: data.quantity,
-        owner: data.owner,
-        condition,
+      where: { id : index },
+      update : {},
+      create : {
+        name : data.name,
+        quantity : data.quantity,
+        owner : data.owner,
+        condition
       },
     });
-  }
+  });
+  await Promise.all(
+    config.defaultContacts.map(async (contact, index) => {
+    console.log(`Adding contact: ${contact.firstName} ${contact.lastName}`);
+    return prisma.contact.upsert({
+      where: { id: index + 1 }, // Note: Using index + 1 so IDs start at 1 instead of 0
+      update: {},
+      create: {
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        address: contact.address,
+        image: contact.image,
+        description: contact.description,
+        owner: contact.owner,
+      },
+      });
+    })
+  );
 }
+
 main()
-  .then(() => prisma.$disconnect())
+  .then(async () => {
+    await prisma.$disconnect();
+  })
   .catch(async (e) => {
     console.error(e);
     await prisma.$disconnect();
     process.exit(1);
   });
+  

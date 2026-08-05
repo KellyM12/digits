@@ -1,7 +1,6 @@
 'use server';
 
-import { Condition } from '@prisma/client';
-import { Stuff } from '@prisma/client';
+import { Stuff, Condition, Contact } from '@prisma/client';
 import { hash } from 'bcrypt';
 import { redirect } from 'next/navigation';
 import { prisma } from './prisma';
@@ -30,6 +29,57 @@ export async function addStuff(stuff: { name: string; quantity: number; owner: s
   });
   // After adding, redirect to the list page
   redirect('/list');
+}
+
+/**
+ * Creates new contact in database
+ * @param contact the contact with the following properties: firstName, lastName, address, image, description, owner
+ */
+export async function addContact(contact : {
+  firstName:string,
+  lastName:string,
+  address:string,
+  image:string,
+  description:string,
+  owner:string
+}) {
+  await prisma.contact.create({
+    data: {
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      address: contact.address,
+      image: contact.image,
+      description: contact.description,
+      owner: contact.owner
+    }
+  });
+  redirect('/list')
+}
+
+export async function addNote(note: { note: string; contactId: number, owner: string }) {
+  await prisma.note.create({
+    data: {
+      note: note.note,
+      owner: note.owner,
+      contactId: note.contactId,
+    },
+  });
+  redirect('/list');
+}
+
+export async function editContact(contact: Contact) {
+  await prisma.contact.update({
+    where: { id: contact.id },
+    data: {
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      address: contact.address,
+      image: contact.image,
+      description: contact.description,
+      owner: contact.owner
+    }
+  });
+  redirect('/list')
 }
 
 /**

@@ -14,6 +14,7 @@ export default defineConfig([
   {
     ignores: ["eslint.config.mjs"],
   },
+
   {
     ignores: [
       "next.config.mjs", 
@@ -22,6 +23,7 @@ export default defineConfig([
       "node_modules/**"
     ],
   },
+
   {
     languageOptions: {
       globals: globals.browser,
@@ -31,6 +33,7 @@ export default defineConfig([
       },
     },
   },
+
   { 
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"], 
     plugins: { js }, 
@@ -39,6 +42,7 @@ export default defineConfig([
  ...tseslint.configs.recommended, 
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat['jsx-runtime'],
+
   {
     rules: {
       "react/react-in-jsx-scope": "off",

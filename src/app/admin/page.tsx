@@ -1,6 +1,6 @@
 import { Col, Container, Row } from 'react-bootstrap';
 import { prisma } from '@/lib/prisma';
-import { Contact } from '@prisma/client';
+import { Contact, Note } from '@prisma/client';
 import  ContactCardAdmin from '@/components/ContactCardAdmin';
 import { adminProtectedPage } from '@/lib/page-protection';
 import { auth } from '@/lib/auth';
@@ -14,6 +14,7 @@ const AdminPage = async () => {
   );
 
   const contacts: Contact[] = await prisma.contact.findMany({});
+  const notes: Note[] = await prisma.note.findMany({});
 
   return (
     <main>
@@ -24,7 +25,7 @@ const AdminPage = async () => {
             <Row xs={1} md={2} lg={3} className="g-4">
               {contacts.map((contact) => (
               <Col key={contact.firstName + contact.lastName}>
-                <ContactCardAdmin contact ={contact} />
+                <ContactCardAdmin contact ={contact} notes={notes} />
               </Col>
               ))}
             </Row>

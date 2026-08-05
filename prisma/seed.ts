@@ -52,12 +52,13 @@ async function main() {
       },
     });
   });
-  config.defaultContacts.forEach(async (contact, index) => {
+  await Promise.all(
+    config.defaultContacts.map(async (contact, index) => {
     console.log(`Adding contact: ${contact.firstName} ${contact.lastName}`);
-    await prisma.contact.upsert({
-      where: { id : index },
-      update : {},
-      create : {
+    return prisma.contact.upsert({
+      where: { id: index + 1 }, // Note: Using index + 1 so IDs start at 1 instead of 0
+      update: {},
+      create: {
         firstName: contact.firstName,
         lastName: contact.lastName,
         address: contact.address,
@@ -65,8 +66,9 @@ async function main() {
         description: contact.description,
         owner: contact.owner,
       },
-    });
-  });
+      });
+    })
+  );
 }
 
 main()
@@ -78,3 +80,4 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
+  

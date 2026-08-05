@@ -7,7 +7,7 @@ interface NoteProps {
   note: Note;
 }
 
-/* Renders a single Contact . See ContactCard.tsx. */
+/* Renders a single Note . See ContactCard.tsx. */
 const NoteItem = ( { note } : NoteProps) => (
   <ListGroup.Item>
     <p className="fw-lighter">{note.createdAt.toLocaleDateString('en-US')}</p>
